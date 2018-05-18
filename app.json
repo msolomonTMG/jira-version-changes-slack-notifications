@@ -1,0 +1,17 @@
+{
+  "name": "Jira Version Date Slack Alerts",
+  "description": "Get notified in slack when a date for a fixVersion is updated in Jira",
+  "repository": "https://github.com/msolomonTMG/jira-version-changes-slack-notifications",
+  "logo": "https://assets3.thrillist.com/v1/image/2715155",
+  "keywords": ["node", "express", "slack", "jira", "versions", "agile", "scope"],
+   "env": {
+    "SLACK_URL": {
+      "description": "The URL of the Slack webhook found in the custom integration configuration in Slack"
+    },
+    "JIRA_API_TOKEN": {
+      "description": "Your Jira API Token"
+    },
+    "JIRA_EMAIL": {
+      "description": "Your Jira Email"
+    }
+}
