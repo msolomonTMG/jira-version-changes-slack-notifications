@@ -1,1 +1,1 @@
-Get notified in Slack when an issue is added to a Sprint
+Get notified in Slack when a version date is updated in Jira
