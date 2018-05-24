@@ -1,11 +1,11 @@
 const request = require('request')
 
 let functions = {
-  getProjectDetails: function(version) {
+  getProjectDetails: function(projectIdOrKey) {
     return new Promise(function(resolve, reject) {
       
       let basicAuthUrl = 'https://' + process.env.JIRA_EMAIL + ':' + process.env.JIRA_API_TOKEN + '@'
-      let projectUrl = 'nowthis.atlassian.net/rest/api/2/project/' + version.projectId
+      let projectUrl = 'nowthis.atlassian.net/rest/api/2/project/' + projectIdOrKey
       let url = basicAuthUrl + projectUrl
       
       let options = {

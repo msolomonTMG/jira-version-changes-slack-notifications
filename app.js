@@ -43,7 +43,7 @@ function handleVersionCreated(req, res) {
   
   version.create(versionObj)
   .then(versionDetails => {
-    jira.getProjectDetails(createdVersion)
+    jira.getProjectDetails(createdVersion.projectId)
     .then(projectDetails => {
       slack.sendVersionCreatedMessage(createdVersion, projectDetails)
     })
@@ -65,7 +65,7 @@ function handleVersionUpdated(req, res) {
         releaseDate: updatedVersion.userReleaseDate,
         name: updatedVersion.name
       }).then(versionDetails => {
-        jira.getProjectDetails(updatedVersion)
+        jira.getProjectDetails(updatedVersion.projectId)
         .then(projectDetails => {
           slack.sendVersionUpdatedMessage(updatedVersion, 'unknown', projectDetails)
         })
@@ -76,7 +76,7 @@ function handleVersionUpdated(req, res) {
       
     } else if (thisVersion.releaseDate != updatedVersion.userReleaseDate) {
       // if the release data was changed, send a slack message!
-      jira.getProjectDetails(updatedVersion)
+      jira.getProjectDetails(updatedVersion.projectId)
       .then(projectDetails => {
         console.log('project is ' + projectDetails.name)
         let previousDate = thisVersion.releaseDate
