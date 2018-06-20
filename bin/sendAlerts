@@ -5,10 +5,9 @@ const slack = require('../slack')
 const moment = require('moment')
 
 var dayOfWeek = new Date().getDay();
-var isWeekend = (dayOfWeek == 6) || (dayOfWeek == 0); // 6 = Saturday, 0 = Sunday
 
-if (isWeekend) {
-  return false // do not run this on the weekends
+if (dayOfWeek != 1) {
+  return false // only run on Mondays
 }
 
 // these are the project keys we want alerts for
