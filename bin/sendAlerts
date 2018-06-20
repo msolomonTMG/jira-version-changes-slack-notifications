@@ -1,0 +1,166 @@
+#!/usr/bin/env node
+
+const jira = require('../jira')
+const slack = require('../slack')
+const moment = require('moment')
+
+var dayOfWeek = new Date().getDay();
+var isWeekend = (dayOfWeek == 6) || (dayOfWeek == 0); // 6 = Saturday, 0 = Sunday
+
+if (isWeekend) {
+  return false // do not run this on the weekends
+}
+
+// these are the project keys we want alerts for
+const projects = [ "ADS", "AT", "CE", "DPU", "EP", "GNOPS", "MMD", "DIU"]
+let overDueReleases = []
+let todaysReleases = []
+let releasesThisWeek = []
+
+let projectDetails = []
+projects.forEach(projectKey => {
+  projectDetails.push(jira.getProjectDetails(projectKey))
+})
+
+// get all the project details before building slack message
+Promise.all(projectDetails)
+.then(values => {
+  values.forEach((project, index) => {
+    
+    project.versions.forEach(version => {
+      
+      if (!version.releaseDate) {
+        // nothing to do for versions without release dates
+      } else if (version.released || version.archived) {
+        // don't worry about released or archived versions
+      } else {
+        let releaseDate = moment(new Date(version.releaseDate)).utc()
+        let today = moment(new Date()).utc()
+                
+        if (releaseDate.diff(today, 'days') < 0) {
+          overDueReleases.push({
+            project: project.name,
+            versionName: version.name,
+            releaseDate: version.releaseDate
+          })
+        } else if (releaseDate.isSame(today, "day")) {
+          todaysReleases.push({
+            project: project.name,
+            versionName: version.name,
+            releaseDate: version.releaseDate
+          })
+        } else if (releaseDate.isSame(today, 'week')) {
+          //TODO: this is a true week, not a business week
+          releasesThisWeek.push({
+            project: project.name,
+            versionName: version.name,
+            releaseDate: version.releaseDate
+          })
+        }
+      }
+      
+    })
+    
+    if (values.length == index + 1) {
+
+      if (overDueReleases.length === 0 &&
+          todaysReleases.length === 0 &&
+          releasesThisWeek.length === 0) {
+        // no releases means no report
+      } else {
+        let slackMessage = {
+          text: `:wave: Hello Program Management! Here is your version report for this week:`,
+          attachments: []
+        }
+        
+        if (overDueReleases.length > 0) {
+          
+          overDueReleases.forEach(overDueRelease => {
+            slackMessage.attachments.push({
+              fallback: `Overdue Release Report`,
+              color: 'danger',
+              title: `${overDueRelease.project}`,
+              fields: [
+                {
+                  title: 'Version',
+                  value: `${overDueRelease.versionName}`,
+                  short: true
+                },
+                {
+                  title: 'Release Date',
+                  value: `${overDueRelease.releaseDate}`,
+                  short: true
+                }
+              ]
+            })
+          })
+          
+        }
+        
+        if (todaysReleases.length > 0) {
+          
+          todaysReleases.forEach(todaysRelease => {
+            slackMessage.attachments.push({
+              fallback: `Today's Release Report`,
+              color: 'warning',
+              title: `${todaysRelease.project}`,
+              fields: [
+                {
+                  title: 'Version',
+                  value: `${todaysRelease.versionName}`,
+                  short: true
+                },
+                {
+                  title: 'Release Date',
+                  value: `${todaysRelease.releaseDate}`,
+                  short: true
+                }
+              ]
+            })
+          })
+          
+        }
+        
+        if (releasesThisWeek.length > 0) {
+          
+          releasesThisWeek.forEach(releaseThisWeek => {
+            slackMessage.attachments.push({
+              fallback: `This Week's Release Report`,
+              color: 'good',
+              title: `${releaseThisWeek.project}`,
+              fields: [
+                {
+                  title: 'Version',
+                  value: `${releaseThisWeek.versionName}`,
+                  short: true
+                },
+                {
+                  title: 'Release Date',
+                  value: `${releaseThisWeek.releaseDate}`,
+                  short: true
+                }
+              ]
+            })
+          })
+          
+        }
+        
+        slack.sendGenericMessage(slackMessage)
+
+      }
+      
+
+
+      console.log('overDueReleases')
+      console.log(overDueReleases)
+      
+      console.log('todaysReleases')
+      console.log(todaysReleases)
+      
+      console.log('releasesThisWeek')
+      console.log(releasesThisWeek)
+    }
+    
+    
+  })
+})
