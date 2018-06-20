@@ -36,6 +36,13 @@ let helpers = {
 
 
 let functions = {
+  sendGenericMessage: function(message) {
+    return new Promise(function(resolve, reject) {
+      
+      helpers.sendSlackMessage(message)
+      
+    });
+  },
   sendVersionCreatedMessage: function(version, project) {
     return new Promise(function(resolve, reject) {
       
